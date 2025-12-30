@@ -1,0 +1,122 @@
+schema: '2.0'
+stages:
+  load_data:
+    cmd: poetry run python src/DataLoading/load_data.py
+    deps:
+    - path: src/DataLoading/load_data.py
+      hash: md5
+      md5: eadd9a6c42a61aadbb1904765cc36349
+      size: 1798
+    outs:
+    - path: data/raw/raw.csv
+      hash: md5
+      md5: e1b6054b415ad8448f25838a532bfb3e
+      size: 116187
+  preprocess_data:
+    cmd: poetry run python src/DataPreprocessing/preprocess_data.py
+    deps:
+    - path: data/raw/raw.csv
+      hash: md5
+      md5: e1b6054b415ad8448f25838a532bfb3e
+      size: 116187
+    - path: params.yaml
+      hash: md5
+      md5: 48943c973cdd223e09e8c6bf85855a62
+      size: 209
+    - path: src/DataPreprocessing/preprocess_data.py
+      hash: md5
+      md5: cc2fc677d079c0e6c08f6eb0e3af4f1e
+      size: 4219
+    outs:
+    - path: artifacts/features_mean_imputer.joblib
+      hash: md5
+      md5: be1f5fd6efd184f3f71f4c9ac91ee395
+      size: 1511
+    - path: data/preprocessed/test_preprocessed.csv
+      hash: md5
+      md5: 59ca479e3d5a2d7523846f3d7286587d
+      size: 26772
+    - path: data/preprocessed/train_preprocessed.csv
+      hash: md5
+      md5: 5b2ff68c742d023a1558de4ee086edbe
+      size: 105868
+  engineer_features:
+    cmd: poetry run python src/FeatureEnginnering/engineer_features.py
+    deps:
+    - path: data/preprocessed/test_preprocessed.csv
+      hash: md5
+      md5: 59ca479e3d5a2d7523846f3d7286587d
+      size: 26772
+    - path: data/preprocessed/train_preprocessed.csv
+      hash: md5
+      md5: 5b2ff68c742d023a1558de4ee086edbe
+      size: 105868
+    - path: src/FeatureEnginnering/engineer_features.py
+      hash: md5
+      md5: 5696dd528df53c0a7934c169a9929f08
+      size: 3070
+    outs:
+    - path: artifacts/features_scaler.joblib
+      hash: md5
+      md5: 08649a16101e874d53daafa8550a1ffc
+      size: 2135
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 12561c5b032dcf9f9590049d2c46acc2
+      size: 67471
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: baf1147e6413557de24174efa11f0ff8
+      size: 267794
+  train_model:
+    cmd: poetry run python src/ModelTraining/train_model.py
+    deps:
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: baf1147e6413557de24174efa11f0ff8
+      size: 267794
+    - path: params.yaml
+      hash: md5
+      md5: 48943c973cdd223e09e8c6bf85855a62
+      size: 209
+    - path: src/ModelTraining/train_model.py
+      hash: md5
+      md5: f892af2b01a5e3287948f7e1696b6f55
+      size: 5301
+    outs:
+    - path: artifacts/[target]_one_hot_encoder.joblib
+      hash: md5
+      md5: 9c68e41a114fdb0985121e8d89f055bc
+      size: 617
+    - path: metrics/training.json
+      hash: md5
+      md5: 626406b9074714d072842449ad73ffef
+      size: 141
+    - path: models/model.keras
+      hash: md5
+      md5: 3ae35950317a99858a60b295437f2e64
+      size: 79417
+  evaluate_model:
+    cmd: poetry run python src/ModelEvaluation/evaluate_model.py
+    deps:
+    - path: artifacts/[target]_one_hot_encoder.joblib
+      hash: md5
+      md5: 9c68e41a114fdb0985121e8d89f055bc
+      size: 617
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: baf1147e6413557de24174efa11f0ff8
+      size: 267794
+    - path: models/model.keras
+      hash: md5
+      md5: 3ae35950317a99858a60b295437f2e64
+      size: 79417
+    - path: src/ModelEvaluation/evaluate_model.py
+      hash: md5
+      md5: a817c288c0d6e73c7918dec7f48da88a
+      size: 1193
+    outs:
+    - path: metrics/evaluation.json
+      hash: md5
+      md5: fcab59c404242db06d123c18d770566d
+      size: 70

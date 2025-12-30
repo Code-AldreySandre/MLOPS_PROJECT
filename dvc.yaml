@@ -1,0 +1,54 @@
+stages:
+  load_data:
+    cmd: poetry run python src/DataLoading/load_data.py
+    deps:
+    - src/DataLoading/load_data.py
+    outs:
+    - data/raw/raw.csv
+
+  preprocess_data:
+    cmd: poetry run python src/DataPreprocessing/preprocess_data.py
+    deps:
+    - data/raw/raw.csv
+    - params.yaml
+    - src/DataPreprocessing/preprocess_data.py
+    outs:
+    - artifacts/features_mean_imputer.joblib
+    - data/preprocessed/test_preprocessed.csv
+    - data/preprocessed/train_preprocessed.csv
+
+  engineer_features:
+    cmd: poetry run python src/FeatureEnginnering/engineer_features.py
+    deps:
+    - data/preprocessed/test_preprocessed.csv
+    - data/preprocessed/train_preprocessed.csv
+    - src/FeatureEnginnering/engineer_features.py
+    outs:
+    - artifacts/features_scaler.joblib
+    - data/processed/test_processed.csv
+    - data/processed/train_processed.csv
+    
+
+  train_model:
+    cmd: poetry run python src/ModelTraining/train_model.py
+    deps:
+    - data/processed/train_processed.csv
+    - params.yaml
+    - src/ModelTraining/train_model.py
+    outs:
+    - artifacts/[target]_one_hot_encoder.joblib  
+    - models/model.keras
+    metrics:
+    - metrics/training.json:
+        cache: false
+
+  evaluate_model:
+    cmd: poetry run python src/ModelEvaluation/evaluate_model.py
+    deps:
+    - artifacts/[target]_one_hot_encoder.joblib
+    - data/processed/train_processed.csv
+    - models/model.keras
+    - src/ModelEvaluation/evaluate_model.py
+    metrics:
+    - metrics/evaluation.json:
+        cache: false

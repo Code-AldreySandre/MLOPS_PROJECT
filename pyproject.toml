@@ -15,7 +15,8 @@ dependencies = [
     "pandas==2.2.3",
     "PyYAML==6.0.2",
     "scikit-learn==1.6.1",
-    "tensorflow==2.19.0"
+    "tensorflow==2.19.0",
+    "dvc (>=3.65.0,<4.0.0)"
 ]
 
 
