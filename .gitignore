@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+__pychache__/
+*.py[cod]
+.vscode/
+data/
+artifacts/
+models/
+metrics/
+.env
