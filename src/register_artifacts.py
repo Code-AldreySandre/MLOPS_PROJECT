@@ -4,11 +4,19 @@ import sys
 
 import mlflow
 import pandas as pd
+import dagshub
 from dotenv import load_dotenv
 from mlflow.tracking import MlflowClient
 
 # 1. Carregar variáveis de ambiente (Crucial para achar o servidor correto!)
 load_dotenv()
+
+# Inicializa o DagsHub (isso configura auth e URI automaticamente)
+dagshub.init(
+    repo_owner="Code-AldreySandre",
+    repo_name="MLOPS_PROJECT",
+    mlflow=True
+)
 
 # Configuração de Logs
 logging.basicConfig(

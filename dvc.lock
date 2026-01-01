@@ -81,8 +81,8 @@ stages:
       size: 209
     - path: src/ModelTraining/train_model.py
       hash: md5
-      md5: 3b9a19b5fe2443aa3bd0114be103737b
-      size: 7629
+      md5: 163fe9fed5b5c2978145380b7eb560f3
+      size: 7962
     outs:
     - path: artifacts/[target]_one_hot_encoder.joblib
       hash: md5
@@ -94,7 +94,7 @@ stages:
       size: 141
     - path: models/model.keras
       hash: md5
-      md5: 013f8c06a77678d087d1b7bc78e95286
+      md5: 69990c3c6a3875cdf6098d29c042c711
       size: 79417
   evaluate_model:
     cmd: poetry run python src/ModelEvaluation/evaluate_model.py
@@ -109,12 +109,12 @@ stages:
       size: 67471
     - path: models/model.keras
       hash: md5
-      md5: 013f8c06a77678d087d1b7bc78e95286
+      md5: 69990c3c6a3875cdf6098d29c042c711
       size: 79417
     - path: src/ModelEvaluation/evaluate_model.py
       hash: md5
-      md5: e5bcea3ce7686e1add9af102a6339a7f
-      size: 4666
+      md5: f11083d0de7885fa4ed680c71d0925c9
+      size: 5000
     outs:
     - path: metrics/evaluation.json
       hash: md5

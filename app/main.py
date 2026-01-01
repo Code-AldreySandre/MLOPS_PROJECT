@@ -5,6 +5,7 @@ import sys
 
 import joblib
 import mlflow
+import dagshub
 import pandas as pd
 import numpy as np
 from flask import Flask, render_template, request, current_app
@@ -14,8 +15,9 @@ from dotenv import load_dotenv
 
 # 1. Carregar variáveis de ambiente (Crucial para o MLflow funcionar)
 load_dotenv()
-mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
+#mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
 
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 # Configuração de Logs
 logging.basicConfig(
     level=logging.INFO,

@@ -5,6 +5,7 @@ import sys
 
 import joblib
 import mlflow
+import dagshub
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -18,6 +19,12 @@ from tensorflow.keras.optimizers import Adam
 
 # 1. Configuração Inicial e Variáveis de Ambiente
 load_dotenv()
+
+dagshub.init(
+    repo_owner="Code-AldreySandre",
+    repo_name="MLOPS_PROJECT",
+    mlflow=True
+)
 
 # Configuração de Logs
 logging.basicConfig(
@@ -113,7 +120,12 @@ def setup_mlflow_run(experiment_name: str):
     """Configura o experimento e define a hierarquia de Runs (DVC vs Standalone)."""
     
     # Define URI (garante http se não estiver no env)
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
+    #mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
+    tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
+    if not tracking_uri:
+        logger.warning("URI do MLflow não encontrada no .env. Verifique suas configurações!")
+
+    mlflow.set_tracking_uri(tracking_uri)
     
     # Configura Experimento e obtém ID
     experiment = mlflow.set_experiment(experiment_name)

@@ -18,7 +18,8 @@ dependencies = [
     "tensorflow==2.19.0",
     "dvc (>=3.65.0,<4.0.0)",
     "mlflow (>=3.8.1,<4.0.0)",
-    "python-dotenv (>=1.2.1,<2.0.0)"
+    "python-dotenv (>=1.2.1,<2.0.0)",
+    "dagshub (>=0.6.4,<0.7.0)"
 ]
 
 
