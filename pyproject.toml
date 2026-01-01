@@ -16,7 +16,9 @@ dependencies = [
     "PyYAML==6.0.2",
     "scikit-learn==1.6.1",
     "tensorflow==2.19.0",
-    "dvc (>=3.65.0,<4.0.0)"
+    "dvc (>=3.65.0,<4.0.0)",
+    "mlflow (>=3.8.1,<4.0.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)"
 ]
 
 

@@ -1,4 +1,7 @@
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # LogGin strategy
 logging.basicConfig(

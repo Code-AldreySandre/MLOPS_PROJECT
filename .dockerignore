@@ -12,3 +12,5 @@ metrics/*.json
 
 #DVC
 .dvc
+
+mlruns

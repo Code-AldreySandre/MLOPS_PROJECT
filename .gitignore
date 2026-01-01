@@ -8,3 +8,4 @@ artifacts/
 models/
 metrics/
 .env
+mlruns

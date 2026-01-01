@@ -1,15 +1,26 @@
 import io
 import logging
 import os
+import sys
 
 import joblib
-import numpy as np
+import mlflow
 import pandas as pd
-from flask import Flask, render_template, request, current_app # <--- Importar current_app
-from sklearn.datasets import load_breast_cancer
-from tensorflow.keras.models import load_model
+import numpy as np
+from flask import Flask, render_template, request, current_app
+from sklearn.datasets import load_breast_cancer # <--- Voltamos com ele!
+from mlflow.tracking import MlflowClient
+from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# 1. Carregar variáveis de ambiente (Crucial para o MLflow funcionar)
+load_dotenv()
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
+
+# Configuração de Logs
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("app.main")
 
 
@@ -21,39 +32,75 @@ class ModelService:
         self.model = None
         self._load_artifacts()
 
-    def _load_artifacts(self) -> None:
-        logger.info("Loading artifacts from local project folder")
+    def _load_artifacts(self):
+        """Load the registered model and artifacts from MLflow."""
+        
+        # Nome do modelo (deve ser o mesmo do register_artifacts.py)
+        model_name = "model" 
+        stage = "Staging"  # Tenta pegar o que está em Staging
 
-        # Verifica se estamos na pasta raiz ou dentro de app (ajuste de caminho relativo)
-        if os.path.exists("artifacts"):
-            base_dir = ""
-        elif os.path.exists("../artifacts"):
-            base_dir = "../"
-        else:
-            raise FileNotFoundError("Could not find 'artifacts' folder. Are you running from project root?")
+        logger.info(f"Carregando modelo '{model_name}' do MLflow...")
+        
+        try:
+            # 1. Carrega o modelo Keras
+            self.model = mlflow.keras.load_model(f"models:/{model_name}/{stage}")
+            logger.info("Modelo Keras carregado.")
 
-        artifacts_dir = os.path.join(base_dir, "artifacts")
-        models_dir = os.path.join(base_dir, "models")
+            # 2. Descobre o Run ID original
+            client = MlflowClient()
+            latest_versions = client.get_latest_versions(model_name, stages=[stage])
+            
+            if not latest_versions:
+                 # Se não tiver Staging, tenta None (última versão)
+                 latest_versions = client.get_latest_versions(model_name, stages=["None"])
+            
+            if not latest_versions:
+                raise Exception("Modelo não encontrado no Registry.")
 
-        # Caminhos com os nomes EXATOS que você confirmou
-        features_imputer_path = os.path.join(artifacts_dir, "features_mean_imputer.joblib")
-        features_scaler_path = os.path.join(artifacts_dir, "features_scaler.joblib")
-        target_encoder_path = os.path.join(artifacts_dir, "[target]_one_hot_encoder.joblib") # Com colchetes
-        model_path = os.path.join(models_dir, "model.keras")
+            run_id = latest_versions[0].run_id
+            logger.info(f"Baixando artefatos do Run ID: {run_id}")
 
-        # Carrega tudo (se falhar aqui, o app nem inicia)
-        self.features_imputer = joblib.load(features_imputer_path)
-        self.features_scaler = joblib.load(features_scaler_path)
-        self.target_encoder = joblib.load(target_encoder_path)
-        self.model = load_model(model_path)
-        logger.info("Successfully loaded all artifacts")
+            # 3. Baixa os artefatos auxiliares
+            local_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="artifacts")
+            
+            # Ajuste para garantir a pasta correta
+            if os.path.basename(local_path) != "artifacts":
+                 base_path = os.path.join(local_path, "artifacts")
+            else:
+                 base_path = local_path
+
+            # --- AQUI ESTÁ A CORREÇÃO DOS NOMES PARA O SEU PROJETO ---
+            
+            
+            self.features_imputer = joblib.load(os.path.join(base_path, "features_mean_imputer.joblib"))
+            
+            
+            self.features_scaler = joblib.load(os.path.join(base_path, "features_scaler.joblib"))
+            
+            encoder_file = [f for f in os.listdir(base_path) if "[target]_one_hot_encoder.joblib" in f][0]
+            self.target_encoder = joblib.load(os.path.join(base_path, encoder_file))
+            
+            logger.info("Artefatos carregados com sucesso!")
+
+        except Exception as e:
+            logger.critical(f"Erro ao carregar artefatos: {e}")
+            raise e
 
     def predict(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Pipeline de predição."""
+        features = features.astype(float) # Garante numérico
         X_imputed = self.features_imputer.transform(features)
         X_scaled = self.features_scaler.transform(X_imputed)
+
         y_pred_probs = self.model.predict(X_scaled)
         y_pred_indices = np.argmax(y_pred_probs, axis=1)
-        y_decoded = self.target_encoder.categories_[0][y_pred_indices]
+
+        # Decodifica
+        if hasattr(self.target_encoder, 'categories_'):
+             y_decoded = self.target_encoder.categories_[0][y_pred_indices]
+        else:
+             y_decoded = self.target_encoder.inverse_transform(y_pred_indices)
+
         return pd.DataFrame({"Prediction": y_decoded}, index=features.index)
 
 
@@ -64,48 +111,44 @@ def create_routes(app: Flask) -> None:
 
     @app.route("/upload", methods=["POST"])
     def upload() -> str:
-        file = request.files["file"]
+        file = request.files.get("file")
         if not file or not file.filename.endswith(".csv"):
-            return render_template("index.html", error="Please upload a valid CSV file")
+            return render_template("index.html", error="Envie um CSV válido.")
 
         try:
             content = file.read().decode("utf-8")
             features = pd.read_csv(io.StringIO(content))
 
-            # Usa current_app para acessar o serviço de forma segura
-            model_service = current_app.model_service
-
-            if hasattr(model_service.features_scaler, "feature_names_in_"):
-                expected_features = list(model_service.features_scaler.feature_names_in_)
-            else:
-                expected_features = load_breast_cancer().feature_names
-
-            missing_cols = [col for col in expected_features if col not in features.columns]
             
+            expected_features = list(load_breast_cancer().feature_names)
+            
+            missing_cols = [col for col in expected_features if col not in features.columns]
             if missing_cols:
-                return render_template(
-                    "index.html",
-                    error=f"Missing required columns: {', '.join(missing_cols)}",
-                )
+                return render_template("index.html", error=f"Colunas faltando: {', '.join(missing_cols)}")
             
             features = features[expected_features]
-            predictions_df = model_service.predict(features)
+            # ------------------------------------------------------
+
+            predictions = current_app.model_service.predict(features)
             
-            result_html = predictions_df.to_html(classes='table table-striped table-hover', border=0)
-            return render_template("index.html", predictions=result_html)
+            return render_template(
+                "index.html", 
+                predictions=predictions.to_html(classes='table table-striped', border=0, justify='center')
+            )
 
         except Exception as e:
-            logger.error(f"Error processing file: {e}", exc_info=True)
-            return render_template("index.html", error=f"Error: {str(e)}")
+            logger.error(f"Erro: {e}", exc_info=True)
+            return render_template("index.html", error=f"Erro: {str(e)}")
 
 
 app = Flask(__name__)
 
-# --- MUDANÇA CRÍTICA AQUI ---
-# Removemos o try/except. Se der erro, queremos ver no terminal agora!
-logger.info("Initializing ModelService...")
-app.model_service = ModelService()
-logger.info("ModelService initialized successfully!")
+# Inicializa o serviço
+try:
+    with app.app_context():
+        app.model_service = ModelService()
+except Exception as e:
+    logger.error(f"Erro na inicialização do serviço: {e}")
 
 create_routes(app)
 

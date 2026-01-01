@@ -46,7 +46,7 @@ stages:
     cmd: poetry run python src/ModelEvaluation/evaluate_model.py
     deps:
     - artifacts/[target]_one_hot_encoder.joblib
-    - data/processed/train_processed.csv
+    - data/processed/test_processed.csv  
     - models/model.keras
     - src/ModelEvaluation/evaluate_model.py
     metrics:
