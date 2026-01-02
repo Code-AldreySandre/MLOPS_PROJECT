@@ -9,3 +9,23 @@ models/
 metrics/
 .env
 mlruns
+
+# --- Airflow Ignored Files ---
+# O banco de dados contém o estado local e não deve ir pro Git
+airflow_home/airflow.db
+
+# Logs de execução ocupam espaço e mudam a cada segundo
+airflow_home/logs/
+
+# A SENHA do admin (Segurança crítica!)
+airflow_home/standalone_admin_password.txt
+
+# Configurações que contém caminhos absolutos do SEU computador
+# (Lembra que o dags_folder tem /home/aldrey...? Isso quebraria no PC de outra pessoa)
+airflow_home/airflow.cfg
+airflow_home/webserver_config.py
+
+# Arquivos temporários do Airflow
+airflow_home/*.pid
+airflow_home/*.err
+airflow_home/*.log

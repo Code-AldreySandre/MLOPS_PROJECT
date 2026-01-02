@@ -1,3 +1,26 @@
 # Add patterns of files dvc should ignore, which could improve
 # the performance. Learn more at
 # https://dvc.org/doc/user-guide/dvcignore
+
+# --- Arquivos de Sistema (Lixo do SO) ---
+.DS_Store       # Mac
+Thumbs.db       # Windows
+desktop.ini     # Windows
+
+# --- Arquivos Temporários de Código ---
+# Caso algum script salve cache dentro da pasta data/ sem querer
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Logs e Temporários Gerais ---
+*.log
+*.tmp
+*.temp
+.ipynb_checkpoints/  # Jupyter Notebooks costumam criar isso dentro das pastas
+
+# --- Pastas Específicas do Seu Projeto ---
+# Se você tiver alguma pasta 'temp' dentro de data/ que serve só de rascunho
+data/temp/
+data/scratch/
