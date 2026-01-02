@@ -187,7 +187,10 @@ As métricas são calculadas no conjunto de teste e logadas no MLflow e DVC.
 
 - **Dados:** Apenas os arquivos .dvc sobem para o GitHub; os dados reais ficam no armazenamento remoto (S3/DagsHub).
 
+<<<<<<< HEAD
 ---
 ## Referências
 
 [1] Breast Cancer Wisconsin (Diagnostic) Dataset. *Scikit-learn*. Disponível em: [https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html)
+=======
+>>>>>>> 882d0983e1311a9654d32f967c32f1c79bbede64
