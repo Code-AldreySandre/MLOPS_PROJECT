@@ -13,7 +13,7 @@ Este projeto implementa um pipeline completo de Machine Learning (End-to-End) do
 
 O pipeline é orquestrado pelo **Apache Airflow** e gerencia o ciclo de vida dos dados usando **DVC**. Abaixo, a visualização do fluxo de execução:
 
-![Airflow Graph View](images/airflow_graph_view.png)
+![Airflow Graph View](imgs/airflow_graph_view.png)
 
 ### Etapas do Pipeline:
 1.  **Ingestion (`dvc_load_data`)**: Carregamento dos dados brutos versionados.
@@ -96,3 +96,4 @@ MLOPS_Project/
 - **Credenciais:** Senhas e chaves de API não são versionadas (via .gitignore).
 
 - **Dados:** Apenas os arquivos .dvc sobem para o GitHub; os dados reais ficam no armazenamento remoto (S3/DagsHub).
+
